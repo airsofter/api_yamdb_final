@@ -26,7 +26,7 @@
 ## Запуск проекта
 1. Клонирование репозитория
 ```
-git clone https://github.com/EvgVol/api_yamdb.git
+git clone https://github.com/../api_yamdb.git
 ```
 
 Откройте в своем редакторе кода локальный проекта из репозитория GitHub, клонированного ранее
