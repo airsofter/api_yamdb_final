@@ -1,4 +1,6 @@
+import os
 from pathlib import Path
+from datetime import timedelta
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +27,7 @@ INSTALLED_APPS = [
     "django_filters",
     "rest_framework_simplejwt",
     "api.apps.ApiConfig",
-    'reviews.apps.ReviewsConfig',
+    "reviews.apps.ReviewsConfig",
 ]
 
 MIDDLEWARE = [
