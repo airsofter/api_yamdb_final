@@ -18,7 +18,6 @@
 ### Стек технологий использованный в проекте:
 -   Python 3.9
 -   Django 3.2
-
 -   Django REST Framework
 -   REST API
 -   SQLite
