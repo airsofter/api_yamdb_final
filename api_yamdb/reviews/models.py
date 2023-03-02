@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 # from users.models import User  Заглушка для нашей модели юзера
 
+
 class Category(models.Model):
     name = models.CharField(
         max_length=256,
@@ -60,6 +61,10 @@ class Title(models.Model):
         blank=True,
         related_name='titles',
         verbose_name='Жанры'
+    )
+    description = models.TextField(
+        null=True,
+        verbose_name='Описание'
     )
 
     class Meta:
