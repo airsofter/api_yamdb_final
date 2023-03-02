@@ -2,7 +2,6 @@
 # from rest_framework import routers
 
 # from .views import CommentViewSet, GroupViewSet, PostViewSet, FollowViewSet
-
 # router = routers.DefaultRouter()
 
 # router.register(r"titles", TitleViewSet, basename="titles")
