@@ -1,7 +1,8 @@
 # import base64
 
 # from django.core.files.base import ContentFile
-# from rest_framework import serializers
+from rest_framework import serializers
+from reviews.models import Category, Comment, Genre, Review, Title
 # from rest_framework.relations import SlugRelatedField
 # from rest_framework.validators import UniqueTogetherValidator
 
@@ -17,60 +18,43 @@
 #         return super().to_internal_value(data)
 
 
-# class GroupSerializer(serializers.ModelSerializer):
-#     """Сериализатор модели Group"""
-
-#     class Meta:
-#         pass
+class GenreSerializer(serializers.ModelSerializer):
+    """Сериализатор для жанра."""
+    pass
 
 
-# class PostSerializer(serializers.ModelSerializer):
-#     """Сериализатор модели Post"""
-#     author = SlugRelatedField(slug_field='username', read_only=True)
-#     image = Base64ImageField(required=False, allow_null=True)
-
-#     class Meta:
-#         fields = ('id', 'author', 'text', 'pub_date', 'image', 'group')
-#         # model = Post
+class CategorySerializer(serializers.ModelSerializer):
+    """Сериализатор для категории."""
+    pass
 
 
-# class CommentSerializer(serializers.ModelSerializer):
-#     """Сериализатор модели Comment"""
-#     author = serializers.SlugRelatedField(
-#         read_only=True, slug_field='username'
-#     )
-
-#     class Meta:
-#         fields = ('id', 'author', 'text', 'created', 'post')
-#         # model = Comment
-#         read_only_fields = ('post',)
+class TitleRetrieveSerializer(serializers.ModelSerializer):
+    """Сериализатор для показа произведений."""
+    pass
 
 
-# class FollowSerializer(serializers.ModelSerializer):
-#     """Сериализатор модели Follow"""
-#     # user = serializers.SlugRelatedField(
-#     #     read_only=True,
-#     #     slug_field='username',
-#     #     default=serializers.CurrentUserDefault()
-#     # )
-#     # following = serializers.SlugRelatedField(
-#     #     slug_field='username',
-#     #     queryset=User.objects.all(),
+class TitleWriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для создания произведений."""
+    pass
 
-#     # )
 
-#     # class Meta:
-#     #     model = Follow
-#     #     fields = ('user', 'following')
-#     #     validators = [
-#     #         UniqueTogetherValidator(
-#     #             queryset=Follow.objects.all(),
-#     #             fields=['user', 'following']
-#     #         )
-#     #     ]
+class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели ревью."""
+    pass
 
-#     def validate(self, data):
-#         if self.context['request'].user == data['following']:
-#             raise serializers.ValidationError(
-#                 'Нельзя подписаться на самого себя!')
-#         return data
+
+class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели комментария."""
+
+    author = serializers.SlugRelatedField(
+        slug_field="username",
+        read_only=True,
+        default=serializers.CurrentUserDefault(),
+    )
+
+    class Meta:
+        fields = ("id", "author", "review", "text", "pub_date")
+        read_only_fields = ("review",)
+        model = Comment
+
+
