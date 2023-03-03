@@ -7,7 +7,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from api.serializers import SignupSerializer, TokenObtainSerializer
+from .serializers import SignupSerializer, TokenObtainSerializer
 from users.models import User
 
 
