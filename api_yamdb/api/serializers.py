@@ -39,3 +39,18 @@ class TokenObtainSerializer(serializers.Serializer):
     """Сериализатор для получения токена."""
     username = serializers.CharField()
     confirmation_code = serializers.CharField()
+
+
+class UsersSerializer(serializers.ModelSerializer):
+    """Сериализатор для операций с моделью User."""
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
+        )

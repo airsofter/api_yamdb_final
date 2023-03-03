@@ -1,14 +1,17 @@
 """Обработчики приложения API."""
-from django.shortcuts import render
-from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from django.core.mail import send_mail
-from rest_framework import generics, status
+from rest_framework import generics, status, viewsets
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.decorators import action
 
-from api.serializers import SignupSerializer, TokenObtainSerializer
+from api.serializers import (
+    SignupSerializer,
+    TokenObtainSerializer,
+    UsersSerializer,
+)
 from users.models import User
+from api.permissions import AdministratorPermission, AuthorizedOrModeratorPermission
 
 
 class SignupView(generics.CreateAPIView):
@@ -58,3 +61,16 @@ class TokenObtainView(generics.GenericAPIView):
             {'error': 'Неверный код подтверждения'},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+class UsersViewSet(viewsets.ModelViewSet):
+    """Обработчик для модели User."""
+    queryset = User.objects.all()
+    serializer_class = UsersSerializer
+    permission_classes = [AdministratorPermission]
+
+    @action(methods=['GET', 'PATCH'], detail=False, url_path='me')
+    def self_user(self, request):
+        user = User.objects.get(username=request.user.username)
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)

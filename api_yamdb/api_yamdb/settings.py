@@ -2,12 +2,6 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
-EMAIL = os.getenv('EMAIL')
-EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -105,6 +99,10 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=5),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
 }
 
 
