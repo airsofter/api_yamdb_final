@@ -1,7 +1,13 @@
 import os
-from pathlib import Path
 from datetime import timedelta
+from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
+EMAIL = os.getenv('EMAIL')
+EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -23,11 +29,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "rest_framework",
+    'rest_framework',
+    'rest_framework.authtoken',
+    'rest_framework_simplejwt',
     "django_filters",
-    "rest_framework_simplejwt",
     "api.apps.ApiConfig",
     "reviews.apps.ReviewsConfig",
+    'users.apps.UsersConfig',
+    'core.apps.CoreConfig',
 ]
 
 MIDDLEWARE = [
@@ -110,6 +119,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
+
+AUTH_USER_MODEL = 'users.User'
 
 #  подключаем движок filebased.EmailBackend
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
