@@ -2,38 +2,45 @@
 import random
 
 from rest_framework import serializers
+from django.db import IntegrityError
 
 from core.send_mail import send_mail
 from users.models import User
 
 
-class SignupSerializer(serializers.ModelSerializer):
+class SignupSerializer(serializers.Serializer):
     """Сериализатор для регистрации пользователя."""
-
-    class Meta:
-        model = User
-        fields = ('username', 'email')
+    username = serializers.CharField(max_length=150)
+    email = serializers.EmailField()
 
     def create(self, validated_data):
-        """Метод для создания пользователя."""
 
-        confirmation_code = str(
-            random.randint(1000000, 9999999)
-        )
+        user = User.objects.filter(
+            username=validated_data.get('username'),
+        ).first()
+        username = validated_data.get('username')
+        email = validated_data.get('email')
+        confirmation_code = random.randint(1000000, 9999999)
+        if user:
+            send_mail(
+                from_email='yam.db.bot@support.com',
+                to_email=email,
+                subject='Confiramtion Code',
+                message=f'Your confirmation code: {confirmation_code}',
+            )
+            return user
         user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
+            username=username,
+            email=email,
             password=confirmation_code,
         )
-        user.save()
         send_mail(
-            subject='YamDB support!',
-            message=f'Код подтверждения: {confirmation_code}',
-            from_email='yam.db@support.com',
-            to_email=validated_data['email']
+            from_email='yam.db.bot@support.com',
+            to_email=email,
+            subject='Confiramtion Code',
+            message=f'Your confirmation code: {confirmation_code}',
         )
         return user
-
 
 class TokenObtainSerializer(serializers.Serializer):
     """Сериализатор для получения токена."""
@@ -54,3 +61,22 @@ class UsersSerializer(serializers.ModelSerializer):
             'bio',
             'role',
         )
+
+    def create(self, validated_data):
+        """Метод дял создания пользователя."""
+
+        if validated_data.get('role') == ('admin' or 'moderator'):
+            user = User.objects.create_user(
+                username=validated_data.get('username'),
+                email=validated_data.get('email'),
+                first_name=validated_data.get('first_name'),
+                last_name=validated_data.get('last_name'),
+                bio=validated_data.get('bio'),
+                role=validated_data.get('role'),
+                is_staff=True,
+            )
+            return user
+        user = User.objects.create_user(
+            **validated_data,
+        )
+        return user
