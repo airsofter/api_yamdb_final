@@ -27,7 +27,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ('name', 'slug')
 
 
-class TitleRetrieveSerializer(serializers.ModelSerializer):
+class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для показа произведений."""
     category = CategorySerializer(many=False)
     genre = GenreSerializer(many=True)
@@ -148,3 +148,38 @@ class TokenObtainSerializer(serializers.Serializer):
     """Сериализатор для получения токена."""
     username = serializers.CharField()
     confirmation_code = serializers.CharField()
+
+
+class UsersSerializer(serializers.ModelSerializer):
+    """Сериализатор для операций с моделью User."""
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
+        )
+
+    def create(self, validated_data):
+        """Метод дял создания пользователя."""
+
+        if validated_data.get('role') == ('admin' or 'moderator'):
+            user = User.objects.create_user(
+                username=validated_data.get('username'),
+                email=validated_data.get('email'),
+                first_name=validated_data.get('first_name'),
+                last_name=validated_data.get('last_name'),
+                bio=validated_data.get('bio'),
+                role=validated_data.get('role'),
+                is_staff=True,
+            )
+            return user
+        user = User.objects.create_user(
+            **validated_data,
+        )
+        return user
+

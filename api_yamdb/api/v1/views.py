@@ -14,7 +14,7 @@ from rest_framework.decorators import action
 from .serializers import (SignupSerializer, TokenObtainSerializer,
                           CategorySerializer, GenreSerializer,
                           TitleRetrieveSerializer, TitleWriteSerializer,
-                          ReviewSerializer, UsersSerializer)
+                          ReviewSerializer, UsersSerializer, CommentSerializer)
 from .permissions import (IsAdminOrReadOnlyPermission)
 from users.models import User
 from reviews.models import Genre, Category, Title, Review, Comment
@@ -73,14 +73,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, title=self.get_title())
 
 
-# class FollowViewSet(viewsets.ModelViewSet):
-#     """Вьюсет Follow"""
-#     serializer_class = FollowSerializer
-#     filter_backends = (SearchFilter,)
-#     search_fields = ('following__username',)
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user, title=self.get_title())
+class CommentViewSet(viewsets.ModelViewSet):
+    """Вьюсет для модели комментариев."""
+    serializer_class = CommentSerializer
+    # permission_classes = ()
 
 
 class SignupView(generics.CreateAPIView):
