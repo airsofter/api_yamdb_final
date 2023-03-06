@@ -1,9 +1,11 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+
 # from users.models import User  Заглушка для нашей модели юзера
 
 
 class Category(models.Model):
+    """Категории произведений"""
     name = models.CharField(
         max_length=256,
         verbose_name='Название категории'
@@ -22,6 +24,7 @@ class Category(models.Model):
 
 
 class Genre(models.Model):
+    """Жанры произведений"""
     name = models.CharField(
         max_length=256,
         verbose_name='Название жанра'
@@ -40,6 +43,7 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
+    """Произведения"""
     name = models.CharField(
         max_length=100,
         verbose_name='Название'
@@ -76,6 +80,7 @@ class Title(models.Model):
 
 
 class GenreTitle(models.Model):
+    """Связи моделей жанра и произведения"""
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE
