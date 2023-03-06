@@ -4,7 +4,7 @@ import random
 # from django.core.files.base import ContentFile
 from rest_framework import serializers
 # from rest_framework.relations import SlugRelatedField
-# from rest_framework.validators import UniqueTogetherValidator
+from rest_framework.validators import UniqueValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title
 
@@ -12,35 +12,60 @@ from core.send_mail import send_mail
 from users.models import User
 
 
-# class Base64ImageField(serializers.ImageField):
-#     """Модуль с функциями декодирования base64 изображения"""
-#     def to_internal_value(self, data):
-#         if isinstance(data, str) and data.startswith('data:image'):
-#             format, imgstr = data.split(';base64,')
-#             ext = format.split('/')[-1]
-#             data = ContentFile(base64.b64decode(imgstr), name='imgs.' + ext)
-
-#         return super().to_internal_value(data)
-
-
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор для жанра."""
-    pass
+    class Meta:
+        model = Genre
+        fields = ('name', 'slug')
 
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор для категории."""
-    pass
+    class Meta:
+        model = Category
+        fields = ('name', 'slug')
 
 
 class TitleRetrieveSerializer(serializers.ModelSerializer):
     """Сериализатор для показа произведений."""
-    pass
+    category = CategorySerializer(many=False)
+    genre = GenreSerializer(many=True)
+    rating = serializers.IntegerField()
+
+    class Meta:
+        model = Title
+        fields = (
+            'id',
+            'name',
+            'year',
+            'description',
+            'category',
+            'genre',
+        )
 
 
 class TitleWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для создания произведений."""
-    pass
+    category = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all()
+    )
+    genre = serializers.SlugRelatedField(
+        many=True,
+        slug_field='slug',
+        queryset=Genre.objects.all()
+    )
+
+    class Meta:
+        model = Title
+        fields = (
+            'id',
+            'name',
+            'year',
+            'description',
+            'category',
+            'genre',
+        )
 
 
 class ReviewSerializer(serializers.ModelSerializer):
