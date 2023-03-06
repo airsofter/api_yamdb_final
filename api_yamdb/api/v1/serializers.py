@@ -27,7 +27,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ('name', 'slug')
 
 
-class TitleSerializer(serializers.ModelSerializer):
+class TitleRetrieveSerializer(serializers.ModelSerializer):
     """Сериализатор для показа произведений."""
     category = CategorySerializer(many=False)
     genre = GenreSerializer(many=True)
