@@ -1,15 +1,22 @@
-from rest_framework import permissions, viewsets
+"""Обработчики приложения API."""
+from rest_framework import permissions, viewsets, generics, status
 from rest_framework.generics import get_object_or_404
-from rest_framework.filters import SearchFilter
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .permissions import AuthorOrReadOnly
 from .serializers import CategorySerializer, GenreSerializer, TitleSerializer
 
 from reviews.models import Genre, Category, Title, Review, Comment
 
-"""Обработчики приложения API."""
-
+from api.serializers import (
+    SignupSerializer,
+    TokenObtainSerializer,
+    UsersSerializer,
+)
+from users.models import User
+from api.permissions import AuthorizedOrModeratorPermission
+from core.send_mail import send_mail
 
 
 class GenreViewSet(viewsets.ReadOnlyModelViewSet):
@@ -102,3 +109,20 @@ class TokenObtainView(generics.GenericAPIView):
             {'error': 'Неверный код подтверждения'},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+class UsersViewSet(viewsets.ModelViewSet):
+    """Обработчик для модели User."""
+    queryset = User.objects.all()
+    serializer_class = UsersSerializer
+
+    @action(methods=['GET', 'PATCH'], detail=False, url_path='me')
+    def self_user(self, request):
+        user = User.objects.get(username=request.user.username)
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
+
+    def get_permissions(self):
+        if self.action == 'self_user':
+            return [permissions.IsAuthenticated(), ]
+        return [permissions.IsAdminUser(), ]
