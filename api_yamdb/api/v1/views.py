@@ -6,7 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import action
 
 from .serializers import CategorySerializer, GenreSerializer
-from .serializers import TitleSerializer, ReviewSerializer
+from .serializers import TitleSerializer, ReviewSerializer, CommentSerializer
 
 from reviews.models import Genre, Category, Title, Review, Comment
 
@@ -63,6 +63,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, title=self.get_title())
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    """Вьюсет для модели комментариев."""
+    serializer_class = CommentSerializer
+    # permission_classes = ()
 
 
 class SignupView(generics.CreateAPIView):
