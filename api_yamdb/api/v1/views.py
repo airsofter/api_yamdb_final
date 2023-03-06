@@ -4,7 +4,8 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import CategorySerializer, GenreSerializer, TitleSerializer
+from .serializers import CategorySerializer, GenreSerializer
+from .serializers import TitleSerializer, ReviewSerializer
 
 from reviews.models import Genre, Category, Title, Review, Comment
 
@@ -14,7 +15,7 @@ from .serializers import (
     UsersSerializer,
 )
 from users.models import User
-from v1.permissions import AuthorizedOrModeratorPermission
+from .permissions import AuthorizedOrModeratorPermission
 
 
 class GenreViewSet(viewsets.ReadOnlyModelViewSet):
@@ -34,7 +35,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     permission_classes = (
         permissions.IsAuthenticatedOrReadOnly,
-        AuthorOrReadOnly,
+        AuthorizedOrModeratorPermission,
     )
 
     def get_post(self):
@@ -48,17 +49,20 @@ class TitleViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, post=self.get_post())
 
 
-# class FollowViewSet(viewsets.ModelViewSet):
-#     """Вьюсет Follow"""
-#     serializer_class = FollowSerializer
-#     filter_backends = (SearchFilter,)
-#     search_fields = ('following__username',)
+class ReviewViewSet(viewsets.ModelViewSet):
+    """Вьюсет для модели отзывов."""
+    serializer_class = ReviewSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
-#     def get_queryset(self):
-#         return self.request.user.follower.all()
+    def get_title(self):
+        return get_object_or_404(Title, pk=self.kwargs.get('title_id'))
 
-#     def perform_create(self, serializer):
-#         serializer.save(user=self.request.user)
+    def get_queryset(self):
+        return self.get_title().reviews.all()
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user, title=self.get_title())
+
 
 class SignupView(generics.CreateAPIView):
     """Обработчик для регистрации пользователей."""
