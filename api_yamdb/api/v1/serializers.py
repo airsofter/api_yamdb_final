@@ -34,13 +34,8 @@ class CategorySerializer(serializers.ModelSerializer):
     pass
 
 
-class TitleRetrieveSerializer(serializers.ModelSerializer):
+class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для показа произведений."""
-    pass
-
-
-class TitleWriteSerializer(serializers.ModelSerializer):
-    """Сериализатор для создания произведений."""
     pass
 
 
