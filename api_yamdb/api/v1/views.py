@@ -4,19 +4,17 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .permissions import AuthorOrReadOnly
 from .serializers import CategorySerializer, GenreSerializer, TitleSerializer
 
 from reviews.models import Genre, Category, Title, Review, Comment
 
-from api.serializers import (
+from .serializers import (
     SignupSerializer,
     TokenObtainSerializer,
     UsersSerializer,
 )
 from users.models import User
-from api.permissions import AuthorizedOrModeratorPermission
-from core.send_mail import send_mail
+from v1.permissions import AuthorizedOrModeratorPermission
 
 
 class GenreViewSet(viewsets.ReadOnlyModelViewSet):
