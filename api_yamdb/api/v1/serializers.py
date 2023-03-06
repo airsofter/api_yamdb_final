@@ -125,3 +125,36 @@ class TokenObtainSerializer(serializers.Serializer):
     confirmation_code = serializers.CharField()
 
 
+class UsersSerializer(serializers.ModelSerializer):
+    """Сериализатор для операций с моделью User."""
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
+        )
+
+    def create(self, validated_data):
+        """Метод дял создания пользователя."""
+
+        if validated_data.get('role') == ('admin' or 'moderator'):
+            user = User.objects.create_user(
+                username=validated_data.get('username'),
+                email=validated_data.get('email'),
+                first_name=validated_data.get('first_name'),
+                last_name=validated_data.get('last_name'),
+                bio=validated_data.get('bio'),
+                role=validated_data.get('role'),
+                is_staff=True,
+            )
+            return user
+        user = User.objects.create_user(
+            **validated_data,
+        )
+        return user
+
