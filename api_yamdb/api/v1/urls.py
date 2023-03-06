@@ -3,7 +3,8 @@ from rest_framework import routers
 
 from .views import (SignupView, TokenObtainView,
                     CategoryViewSet, GenreViewSet,
-                    TitleViewSet)
+                    TitleViewSet, UsersViewSet,
+                    FollowViewSet)
 
 
 router = routers.DefaultRouter()
@@ -11,11 +12,17 @@ router = routers.DefaultRouter()
 router.register(r"titles", TitleViewSet, basename="titles")
 router.register(r"genres", GenreViewSet, basename="genres")
 router.register(r"categories", CategoryViewSet, basename="categories")
-# router.register(r'follow', FollowViewSet, basename='followers')
+router.register(r'follow', FollowViewSet, basename='followers')
+router.register(r'auth/signup/', SignupView, basename='signup')
+router.register(r'auth/token/', TokenObtainView, basename='token_obtain')
+router.register('users', UsersViewSet, basename='users_operation')
+# router.register('users/me', UserMeViewSet, basename='user_me')
+
 
 urlpatterns = [
     path('', include(router.urls)),
-    path(r'auth/signup/', SignupView.as_view(), name='signup'),
-    path(r'auth/token/', TokenObtainView.as_view(),
-         name='token_obtain'),
+    path('auth/signup/', SignupView.as_view(), name='signup'),
+    path('auth/token/', TokenObtainView.as_view(), name='token_obtain'),
+    # path('', include('djoser.urls')),
+    # path('', include('djoser.urls.jwt')),
 ]

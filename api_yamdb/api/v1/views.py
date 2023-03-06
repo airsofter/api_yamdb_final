@@ -13,7 +13,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .serializers import (SignupSerializer, TokenObtainSerializer,
                           CategorySerializer, GenreSerializer,
                           TitleRetrieveSerializer, TitleWriteSerializer)
-from .permissions import IsAdminOrReadOnlyPermission, IsAdminPermission, IsReadOnlyPermission
+from .permissions import (IsAdminOrReadOnlyPermission, IsAdminPermission,
+                          IsReadOnlyPermission, UsersSerializer)
 from users.models import User
 from reviews.models import Genre, Category, Title, Review, Comment
 
@@ -116,3 +117,20 @@ class TokenObtainView(generics.GenericAPIView):
             {'error': 'Неверный код подтверждения'},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+class UsersViewSet(viewsets.ModelViewSet):
+    """Обработчик для модели User."""
+    queryset = User.objects.all()
+    serializer_class = UsersSerializer
+
+    @action(methods=['GET', 'PATCH'], detail=False, url_path='me')
+    def self_user(self, request):
+        user = User.objects.get(username=request.user.username)
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
+
+    def get_permissions(self):
+        if self.action == 'self_user':
+            return [permissions.IsAuthenticated(), ]
+        return [permissions.IsAdminUser(), ]
