@@ -5,6 +5,7 @@ import random
 from rest_framework import serializers
 # from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title
 
@@ -70,7 +71,25 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для модели ревью."""
-    pass
+    title = serializers.SlugRelatedField(
+        slug_field='name',
+        read_only=True
+    )
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
+    score = serializers.IntegerField(
+        validators=(
+            MinValueValidator(1),
+            MaxValueValidator(10)
+        ),
+        error_messages={'validators': 'Оценка от 1 до 10!'}
+    )
+
+    class Meta:
+        fields = ('id', 'title', 'text', 'author', 'score', 'pub_date')
+        model = Review
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -129,37 +148,3 @@ class TokenObtainSerializer(serializers.Serializer):
     """Сериализатор для получения токена."""
     username = serializers.CharField()
     confirmation_code = serializers.CharField()
-
-
-class UsersSerializer(serializers.ModelSerializer):
-    """Сериализатор для операций с моделью User."""
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role',
-        )
-
-    def create(self, validated_data):
-        """Метод дял создания пользователя."""
-
-        if validated_data.get('role') == ('admin' or 'moderator'):
-            user = User.objects.create_user(
-                username=validated_data.get('username'),
-                email=validated_data.get('email'),
-                first_name=validated_data.get('first_name'),
-                last_name=validated_data.get('last_name'),
-                bio=validated_data.get('bio'),
-                role=validated_data.get('role'),
-                is_staff=True,
-            )
-            return user
-        user = User.objects.create_user(
-            **validated_data,
-        )
-        return user

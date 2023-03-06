@@ -4,17 +4,18 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from django.db.models import Avg
-from rest_framework import generics, status, viewsets, mixins
+from rest_framework import generics, status, viewsets, mixins, permissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.decorators import action
 
 from .serializers import (SignupSerializer, TokenObtainSerializer,
                           CategorySerializer, GenreSerializer,
-                          TitleRetrieveSerializer, TitleWriteSerializer)
-from .permissions import (IsAdminOrReadOnlyPermission, IsAdminPermission,
-                          IsReadOnlyPermission, UsersSerializer)
+                          TitleRetrieveSerializer, TitleWriteSerializer,
+                          ReviewSerializer, UsersSerializer)
+from .permissions import (IsAdminOrReadOnlyPermission)
 from users.models import User
 from reviews.models import Genre, Category, Title, Review, Comment
 
@@ -57,6 +58,20 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleWriteSerializer
 
 
+class ReviewViewSet(viewsets.ModelViewSet):
+    """Вьюсет для модели отзывов."""
+    serializer_class = ReviewSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def get_title(self):
+        return get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+
+    def get_queryset(self):
+        return self.get_title().reviews.all()
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user, title=self.get_title())
+
 
 # class FollowViewSet(viewsets.ModelViewSet):
 #     """Вьюсет Follow"""
@@ -64,11 +79,9 @@ class TitleViewSet(viewsets.ModelViewSet):
 #     filter_backends = (SearchFilter,)
 #     search_fields = ('following__username',)
 
-#     def get_queryset(self):
-#         return self.request.user.follower.all()
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user, title=self.get_title())
 
-#     def perform_create(self, serializer):
-#         serializer.save(user=self.request.user)
 
 class SignupView(generics.CreateAPIView):
     """Обработчик для регистрации пользователей."""
