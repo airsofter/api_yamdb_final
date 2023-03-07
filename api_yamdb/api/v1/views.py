@@ -1,22 +1,34 @@
 """Обработчики приложения API."""
-from rest_framework import permissions, viewsets, generics, status
-from rest_framework.generics import get_object_or_404
+from django.shortcuts import render
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+from django.core.mail import send_mail
+from django.db.models import Avg
+from rest_framework import generics, status, viewsets, mixins, permissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 
-from .serializers import CategorySerializer, GenreSerializer
-from .serializers import TitleSerializer, ReviewSerializer, CommentSerializer
-
+from .serializers import (SignupSerializer, TokenObtainSerializer,
+                          CategorySerializer, GenreSerializer,
+                          TitleRetrieveSerializer, TitleWriteSerializer,
+                          ReviewSerializer, UsersSerializer, CommentSerializer)
+from .permissions import (IsAdminOrReadOnlyPermission)
+from users.models import User
 from reviews.models import Genre, Category, Title, Review, Comment
 
-from .serializers import (
-    SignupSerializer,
-    TokenObtainSerializer,
-    UsersSerializer,
-)
-from users.models import User
-from .permissions import AuthorizedOrModeratorPermission
+
+class CreateListDestroyViewSet(mixins.CreateModelMixin,
+                               mixins.ListModelMixin,
+                               mixins.DestroyModelMixin,
+                               viewsets.GenericViewSet):
+    """Общий класс для CategoryViewSet и GenreViewSet."""
+    permission_classes = [IsAdminOrReadOnlyPermission]
+    filter_backends = (SearchFilter,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class GenreViewSet(viewsets.ReadOnlyModelViewSet):
@@ -33,21 +45,17 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет произведений"""
-    serializer_class = TitleSerializer
-    permission_classes = (
-        permissions.IsAuthenticatedOrReadOnly,
-        AuthorizedOrModeratorPermission,
+    queryset = Title.objects.all().annotate(
+        rating=Avg('reviews__score')
     )
+    permission_classes = [IsAdminOrReadOnlyPermission]
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('category__slug', 'genre__slug', 'year', 'name')
 
-    def get_post(self):
-        post_id = self.kwargs['post_id']
-        return get_object_or_404(Post, pk=post_id)
-
-    def get_queryset(self):
-        return self.get_post().comments.all()
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user, post=self.get_post())
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return TitleRetrieveSerializer
+        return TitleWriteSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
