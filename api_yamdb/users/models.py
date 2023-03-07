@@ -5,7 +5,6 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from django.db import models
-from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 
 ROLE_CHOICE = (
@@ -19,10 +18,6 @@ class UserManager(BaseUserManager):
     """Менеджер модели User"""
 
     def create_user(self, **kwargs):
-        if not kwargs.get('email'):
-            raise ValueError('Пожалуйста введите email.')
-        if not kwargs.get('username'):
-            raise ValueError('Пожалуйста введите имя пользователя.')
 
         email = self.normalize_email(kwargs.get('email'))
         kwargs.pop('email', None)
@@ -32,11 +27,7 @@ class UserManager(BaseUserManager):
 
         return user
 
-    def create_superuser(self, password=None, **kwargs):
-        if not kwargs.get('email'):
-            raise ValueError('Пожалуйста введите email.')
-        if not kwargs.get('username'):
-            raise ValueError('Пожалуйста введите имя пользователя.')
+    def create_superuser(self, password=None, role='admin', **kwargs):
 
         email = self.normalize_email(kwargs.get('email'))
         kwargs.pop('email', None)
@@ -50,18 +41,13 @@ class UserManager(BaseUserManager):
         return user
 
 
-def validate_username(value):
-    """Метод-валидатор запрещающий никнейм 'me'"""
-    if value == 'me':
-        raise ValidationError('Никнейм "me" запрещен.')
-
-
 class User(AbstractBaseUser, PermissionsMixin):
     """Модель User."""
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, max_length=254)
     first_name = models.CharField(max_length=100, blank=True, null=True)
     last_name = models.CharField(max_length=100, blank=True, null=True)
-    password = models.CharField(max_length=7, blank=True, null=True)
+    password = models.CharField(max_length=128, blank=True, null=True)
+    confirmation_code = models.CharField(max_length=7)
     bio = models.TextField(max_length=256, blank=True, null=True)
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -69,14 +55,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(
         max_length=150,
         unique=True,
-        validators=[
-            RegexValidator(
-                r'^[-a-zA-Z0-9_]+$',
-                message='Поле не соответсвует требованиям.',
-                code='invalid_username',
-            ),
-            validate_username,
-        ]
     )
     role = models.CharField(
         max_length=30,

@@ -4,9 +4,11 @@ import random
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status, viewsets, views
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
+
 from rest_framework.decorators import action
 from rest_framework import permissions
+from django.contrib.auth.hashers import check_password
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from api.serializers import (
     SignupSerializer,
@@ -15,7 +17,7 @@ from api.serializers import (
 )
 from users.models import User
 from api.permissions import AuthorizedOrModeratorPermission
-from core.send_mail import send_mail
+from core.data_hash import hash_sha254
 
 
 class SignupView(generics.CreateAPIView):
@@ -24,17 +26,18 @@ class SignupView(generics.CreateAPIView):
     serializer_class = SignupSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        headers = self.get_success_headers(serializer.data)
-        return Response({
-            'username': user.username,
-            'email': user.email,
-        },
-            status=status.HTTP_200_OK,
-            headers=headers
-        )
+        serializer = self.get_serializer(data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                **serializer.data
+            },
+                status=status.HTTP_200_OK,
+            )
+        errors = {}
+        for field, error_list in serializer.errors.items():
+            errors[field] = [str(e) for e in error_list]
+        return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TokenObtainView(generics.GenericAPIView):
@@ -43,26 +46,16 @@ class TokenObtainView(generics.GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = get_object_or_404(
-            User.objects.all(),
-            username=serializer.validated_data['username']
-        )
-        print(user.password)
-        print(serializer.validated_data['confirmation_code'])
-        if (
-            user.password
-            == serializer.validated_data['confirmation_code']
-        ):
-            user.is_active = True
-            print(user.is_active)
-            refresh = RefreshToken.for_user(user)
+        if serializer.is_valid():
+            user = get_object_or_404(User, username=serializer.validated_data.get('username'))
+            token = RefreshToken.for_user(user)
+            serializer.save()
             return Response(
-                {'token': str(refresh.access_token)},
+                {'token': str(token.access_token),},
                 status=status.HTTP_200_OK,
             )
         return Response(
-            {'error': 'Неверный код подтверждения'},
+            {'error': serializer.errors},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -75,7 +68,8 @@ class UsersViewSet(viewsets.ModelViewSet):
     @action(methods=['GET', 'PATCH'], detail=False, url_path='me')
     def self_user(self, request):
         user = User.objects.get(username=request.user.username)
-        serializer = self.get_serializer(user)
+        print(user.is_active)
+        serializer = self.get_serializer(user, partial=True)
         return Response(serializer.data)
 
     def get_permissions(self):
