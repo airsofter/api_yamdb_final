@@ -111,7 +111,7 @@ class Review(models.Model):
     text = models.TextField(blank=False, verbose_name='Текст отзыва')
     score = models.PositiveIntegerField(
         blank=False,
-        validators=[
+        validators=(
             MinValueValidator(
                 1, message='Значение меньше минимального.'
                 'Значение должно быть от 1 до 10'
@@ -120,7 +120,7 @@ class Review(models.Model):
                 10, message='Значение больше максимального.'
                 'Значение должно быть от 1 до 10'
             ),
-        ]
+        )
     )
     pub_date = models.DateTimeField(
         verbose_name='Дата добавления',
@@ -129,7 +129,7 @@ class Review(models.Model):
     )
 
     class Meta:
-        ordering = ['-pub_date']
+        ordering = ('-pub_date',)
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         constraints = [
@@ -164,7 +164,7 @@ class Comment(models.Model):
     )
 
     class Meta:
-        ordering = ['-pub_date']
+        ordering = ('-pub_date',)
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
 
