@@ -16,7 +16,8 @@ from .serializers import (SignupSerializer, TokenObtainSerializer,
                           TitleRetrieveSerializer, TitleWriteSerializer,
                           ReviewSerializer, UsersSerializer, CommentSerializer)
 from .permissions import (IsAdminOrReadOnlyPermission,
-                          AuthorizedOrModeratorPermission)
+                          AuthorizedOrModeratorPermission,
+                          IsAuthorOrModeRatOrOrAdminOrReadOnly)
 from users.models import User
 from reviews.models import Genre, Category, Title, Review, Comment
 from core.data_hash import hash_sha254
@@ -63,7 +64,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели отзывов."""
     serializer_class = ReviewSerializer
-    permission_classes = (IsAdminOrReadOnlyPermission,)
+    permission_classes = (IsAuthorOrModeRatOrOrAdminOrReadOnly,)
 
     def get_title(self):
         return get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -78,7 +79,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели комментариев."""
     serializer_class = CommentSerializer
-    permission_classes = (AuthorizedOrModeratorPermission,)
+    permission_classes = (AuthorizedOrModeratorPermission, IsAuthorOrModeRatOrOrAdminOrReadOnly,)
 
     def get_review(self):
         return get_object_or_404(Review, id=self.kwargs.get('review_id'))
