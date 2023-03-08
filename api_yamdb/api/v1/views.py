@@ -7,6 +7,8 @@ from django.db.models import Avg
 from rest_framework import generics, status, viewsets, mixins, permissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from core.pagination import UsersPagination
+from rest_framework import filters
 from rest_framework.filters import SearchFilter
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
@@ -96,17 +98,18 @@ class SignupView(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                **serializer.data
-            },
-                status=status.HTTP_200_OK,
-            )
-        errors = {}
-        for field, error_list in serializer.errors.items():
-            errors[field] = [str(e) for e in error_list]
-        return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            serializer.data
+        ,
+            status=status.HTTP_200_OK,
+        )
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # errors = {}
+        # for field, error_list in serializer.errors.items():
+        #     errors[field] = [str(e) for e in error_list]
+        # return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TokenObtainView(generics.GenericAPIView):
@@ -134,6 +137,37 @@ class UsersViewSet(viewsets.ModelViewSet):
     """Обработчик для модели User."""
     queryset = User.objects.all()
     serializer_class = UsersSerializer
+    pagination_class = UsersPagination
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('username', )
+    lookup_field = 'username'
+
+
+    def retrieve(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        user = get_object_or_404(queryset, username=kwargs['username'])
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        if request.method == 'PUT':
+            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        queryset = self.get_queryset()
+        user = get_object_or_404(queryset, username=kwargs['username'])
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def delete(self, request, *args, **kwargs):
+        print(self.action)
+        if self.action == 'self_user':
+            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        queryset = self.get_queryset()
+        get_object_or_404(queryset, username=kwargs['username']).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=['GET', 'PATCH'], detail=False, url_path='me')
     def self_user(self, request):

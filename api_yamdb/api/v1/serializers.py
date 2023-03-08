@@ -27,7 +27,7 @@ class SignupSerializer(serializers.Serializer):
             )
         ],
     )
-    email = serializers.EmailField(max_length=254)
+    email = serializers.EmailField(max_length=254, required=True)
 
     def validate(self, data):
         username = data.get('username')
