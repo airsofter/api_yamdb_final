@@ -15,9 +15,7 @@ from .serializers import (SignupSerializer, TokenObtainSerializer,
                           CategorySerializer, GenreSerializer,
                           TitleRetrieveSerializer, TitleWriteSerializer,
                           ReviewSerializer, UsersSerializer, CommentSerializer)
-from .permissions import (IsAdminOrReadOnlyPermission,
-                          AuthorizedOrModeratorPermission,
-                          IsAuthorOrModeRatOrOrAdminOrReadOnly)
+from .permissions import AdminOnlyPermission
 from users.models import User
 from reviews.models import Genre, Category, Title, Review, Comment
 from core.data_hash import hash_sha254
@@ -28,7 +26,7 @@ class CreateListDestroyViewSet(mixins.CreateModelMixin,
                                mixins.DestroyModelMixin,
                                viewsets.GenericViewSet):
     """Общий класс для CategoryViewSet и GenreViewSet."""
-    permission_classes = [IsAdminOrReadOnlyPermission]
+    # permission_classes = [IsAdminOrReadOnlyPermission]
     filter_backends = (SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
@@ -51,7 +49,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all().annotate(
         rating=Avg('reviews__score')
     )
-    permission_classes = [IsAdminOrReadOnlyPermission]
+    # permission_classes = [IsAdminOrReadOnlyPermission]
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('category__slug', 'genre__slug', 'year', 'name')
 
@@ -64,7 +62,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели отзывов."""
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthorOrModeRatOrOrAdminOrReadOnly,)
+    permission_classes = (AdminOnlyPermission,)
 
     def get_title(self):
         return get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -79,7 +77,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели комментариев."""
     serializer_class = CommentSerializer
-    permission_classes = (AuthorizedOrModeratorPermission, IsAuthorOrModeRatOrOrAdminOrReadOnly,)
+    # permission_classes = (AuthorizedOrModeratorPermission, IsAuthorOrModeRatOrOrAdminOrReadOnly,)
 
     def get_review(self):
         return get_object_or_404(Review, id=self.kwargs.get('review_id'))
