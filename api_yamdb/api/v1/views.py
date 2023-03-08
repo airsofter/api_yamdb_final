@@ -17,7 +17,7 @@ from .serializers import (SignupSerializer, TokenObtainSerializer,
                           CategorySerializer, GenreSerializer,
                           TitleRetrieveSerializer, TitleWriteSerializer,
                           ReviewSerializer, UsersSerializer, CommentSerializer)
-from .permissions import AdminOnlyPermission
+from .permissions import AdminOnlyPermission, AuthorizedOrModeratorPermission
 from users.models import User
 from reviews.models import Genre, Category, Title, Review, Comment
 from core.data_hash import hash_sha254
@@ -51,7 +51,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all().annotate(
         rating=Avg('reviews__score')
     )
-    # permission_classes = [IsAdminOrReadOnlyPermission]
+    permission_classes = (AuthorizedOrModeratorPermission,)
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('category__slug', 'genre__slug', 'year', 'name')
 
@@ -79,7 +79,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели комментариев."""
     serializer_class = CommentSerializer
-    # permission_classes = (AuthorizedOrModeratorPermission, IsAuthorOrModeRatOrOrAdminOrReadOnly,)
+    permission_classes = (AuthorizedOrModeratorPermission,)
 
     def get_review(self):
         return get_object_or_404(Review, id=self.kwargs.get('review_id'))
