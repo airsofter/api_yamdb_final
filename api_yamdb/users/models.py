@@ -6,6 +6,7 @@ from django.db import models
 from django.contrib.auth.models import Permission
 
 
+
 USER = 'user'
 MODERATOR = 'moderator'
 ADMIN = 'admin'
@@ -18,7 +19,9 @@ ROLE_CHOICE = (
 
 
 
+
 class User(AbstractUser):
+
     """Модель User."""
 
     email = models.EmailField(unique=True, max_length=254)
