@@ -10,3 +10,12 @@ class AuthorizedOrModeratorPermission(permissions.BasePermission):
                     request.user.role == ('moderator' or 'admin')
                     or request.user == obj.user
         )
+
+
+class AdminOnlyPermission(permissions.BasePermission):
+    """Класс для контроля доступа к административным данным."""
+
+    def has_object_permission(self, request, view, obj):
+        return (
+                    request.user.role == 'admin'
+        )

@@ -10,13 +10,13 @@ from rest_framework import permissions
 from django.contrib.auth.hashers import check_password
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from api.serializers import (
+from api.v1.serializers import (
     SignupSerializer,
     TokenObtainSerializer,
     UsersSerializer,
 )
 from users.models import User
-from api.permissions import AuthorizedOrModeratorPermission
+from api.v1.permissions import AdminOnlyPermission
 from core.data_hash import hash_sha254
 
 
@@ -34,10 +34,11 @@ class SignupView(generics.CreateAPIView):
             },
                 status=status.HTTP_200_OK,
             )
-        errors = {}
-        for field, error_list in serializer.errors.items():
-            errors[field] = [str(e) for e in error_list]
-        return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # errors = {}
+        # for field, error_list in serializer.errors.items():
+        #     errors[field] = [str(e) for e in error_list]
+        # return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TokenObtainView(generics.GenericAPIView):
@@ -68,11 +69,10 @@ class UsersViewSet(viewsets.ModelViewSet):
     @action(methods=['GET', 'PATCH'], detail=False, url_path='me')
     def self_user(self, request):
         user = User.objects.get(username=request.user.username)
-        print(user.is_active)
         serializer = self.get_serializer(user, partial=True)
         return Response(serializer.data)
 
     def get_permissions(self):
         if self.action == 'self_user':
             return [permissions.IsAuthenticated(), ]
-        return [permissions.IsAdminUser(), ]
+        return [AdminOnlyPermission(), ]
