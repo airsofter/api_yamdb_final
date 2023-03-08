@@ -1,4 +1,3 @@
-
 """Сериализаторы приложения API."""
 import random
 import hashlib
@@ -7,9 +6,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-
-from django.core.validators import RegexValidator
-from django.db.models import Q
+from rest_framework.validators import UniqueValidator
+from django.core.validators import (RegexValidator, MaxValueValidator,
+                                    MinValueValidator)
 
 from core.send_mail import send_mail
 from core.data_hash import hash_sha254
@@ -47,11 +46,13 @@ class SignupSerializer(serializers.Serializer):
         username = validated_data.get('username')
         email = validated_data.get('email')
         confirmation_code = random.randint(1000000, 9999999)
-        user = User.objects.filter(Q(username=username) | Q(email=email)).first()
-        print(user)
+
+        user = User.objects.filter(
+            email=validated_data.get('email'),
+        ).first()
 
         if user:
-            if user.email == email and user.username != username or (user.email != email and user.username == username):
+            if user.username != username:
                 raise serializers.ValidationError('Такой пользователь уже существует.')
 
             user.confirmation_code = hash_sha254(confirmation_code)
@@ -64,7 +65,7 @@ class SignupSerializer(serializers.Serializer):
             )
             user.save()
             return user
-        user = User.objects.create(
+        user = User.objects.create_user(
             username=username,
             email=email,
             confirmation_code=confirmation_code,
@@ -89,16 +90,14 @@ class TokenObtainSerializer(serializers.Serializer):
         user.save()
         return user
 
+    def validate_confirmation_code(self, value):
 
-    def validate(self, data):
-        username = data.get('username')
-        confirmation_code = data.get('confirmation_code')
-
-        user = get_object_or_404(User, username=username)
-        if confirmation_code != user.confirmation_code:
-
+        user = User.objects.filter(confirmation_code=hash_sha254(value)).first()
+        print(hash_sha254(value))
+        print(user.confirmation_code)
+        if not user:
             raise serializers.ValidationError('Неверный код подтверждения.')
-        return data
+        return value
 
     class Meta:
         model = User
@@ -134,16 +133,6 @@ class TokenObtainSerializer(serializers.Serializer):
 
 class UsersSerializer(serializers.ModelSerializer):
     """Сериализатор для операций с моделью User."""
-    username = serializers.CharField(
-        max_length=150,
-        validators=[
-            RegexValidator(
-                r'^[-a-zA-Z0-9_]+$',
-                message='Поле не соответсвует требованиям.',
-                code='invalid_username',
-            )
-        ],
-    )
 
     class Meta:
         model = User
@@ -156,36 +145,26 @@ class UsersSerializer(serializers.ModelSerializer):
             'role',
         )
 
-
-    # def validate(self, data):
-    #     """Метод для валидации email по количеству символов."""
-    #     first_name = data.get('first_name')
-    #     last_name = data.get('last_name')
-    #     email = data.get('email')
-    #     if not (email or first_name or last_name):
-    #         raise serializers.ValidationError('Это поле не может быть пустым.')
-    #     if len(email) > 254:
-    #         raise serializers.ValidationError('Длина email не должна превышать 254 символа.')
-    #     if len(last_name) > 150:
-    #         raise serializers.ValidationError('Длина фамилии не должна превышать 150 символа.')
-    #     if len(first_name) > 150:
-    #         raise serializers.ValidationError('Длина имени не должна превышать 150 символа.')
-    #     return data
-
+    def validate_email(self, value):
+        """Метод для валидации email по количеству символов."""
+        if len(value) > 254:
+            raise serializers.ValidationError(
+                'Длина email не должна превышать 254 символа.')
+        return value
 
     def create(self, validated_data):
         """Метод для создания пользователя."""
 
         if validated_data.get('role') == ('admin' or 'moderator'):
-            user = User.objects.create(
+            user = User.objects.create_user(
                 **validated_data,
+                is_staff=True,
             )
             return user
-        user = User.objects.create(
+        user = User.objects.create_user(
             **validated_data,
         )
         return user
-
 
 
 class GenreSerializer(serializers.ModelSerializer):

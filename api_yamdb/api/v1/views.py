@@ -11,17 +11,15 @@ from rest_framework.filters import SearchFilter
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 
-
-from .permissions import AdminOnlyPermission
-
 from .serializers import (SignupSerializer, TokenObtainSerializer,
                           CategorySerializer, GenreSerializer,
                           TitleRetrieveSerializer, TitleWriteSerializer,
                           ReviewSerializer, UsersSerializer, CommentSerializer)
-
+from .permissions import (IsAdminOrReadOnlyPermission,
+                          AuthorizedOrModeratorPermission,
+                          IsAuthorOrModeRatOrOrAdminOrReadOnly)
 from users.models import User
 from reviews.models import Genre, Category, Title, Review, Comment
-
 from core.data_hash import hash_sha254
 
 
@@ -107,11 +105,10 @@ class SignupView(generics.CreateAPIView):
             },
                 status=status.HTTP_200_OK,
             )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        # errors = {}
-        # for field, error_list in serializer.errors.items():
-        #     errors[field] = [str(e) for e in error_list]
-        # return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+        errors = {}
+        for field, error_list in serializer.errors.items():
+            errors[field] = [str(e) for e in error_list]
+        return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TokenObtainView(generics.GenericAPIView):
@@ -143,10 +140,11 @@ class UsersViewSet(viewsets.ModelViewSet):
     @action(methods=['GET', 'PATCH'], detail=False, url_path='me')
     def self_user(self, request):
         user = User.objects.get(username=request.user.username)
+        print(user.is_active)
         serializer = self.get_serializer(user, partial=True)
         return Response(serializer.data)
 
     def get_permissions(self):
         if self.action == 'self_user':
             return [permissions.IsAuthenticated(), ]
-        return [AdminOnlyPermission(), ]
+        return [permissions.IsAdminUser(), ]
