@@ -1,5 +1,4 @@
 """Модель User и менеджер модели User."""
-"""Модель User и менеджер модели User."""
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -7,6 +6,7 @@ from django.contrib.auth.models import (
 )
 from django.db import models
 from django.core.exceptions import ValidationError
+
 
 ROLE_CHOICE = (
     ('admin', 'admin'),
