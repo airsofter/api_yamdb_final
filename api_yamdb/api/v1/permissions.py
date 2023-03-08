@@ -12,16 +12,6 @@ class AuthorizedOrModeratorPermission(permissions.BasePermission):
         )
 
 
-class AuthorizedOrModeratorPermission(permissions.BasePermission):
-    """Класс для контроля доступа к данным."""
-
-    def has_object_permission(self, request, view, obj):
-        return (
-                    request.user.role == ('moderator' or 'admin')
-                    or request.user == obj.user
-        )    
-
-
 class IsAdminOrReadOnlyPermission(permissions.BasePermission):
     """Разрешение для админа и суперюзера"""
     def has_permission(self, request, view):
