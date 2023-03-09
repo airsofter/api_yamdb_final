@@ -192,6 +192,7 @@ class TitleRetrieveSerializer(serializers.ModelSerializer):
             'description',
             'category',
             'genre',
+            'rating'
         )
 
 

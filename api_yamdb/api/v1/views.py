@@ -10,6 +10,7 @@ from rest_framework import filters
 from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.filters import SearchFilter
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
 
 
@@ -47,11 +48,11 @@ class SelfUser(viewsets.ViewSet):
         return Response(serializer.data)
 
 
-
 class GenreViewSet(viewsets.ModelViewSet):
     """Вьюсет жанров"""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+
     def get_permissions(self):
         print(self.action)
         if self.action in ['create', 'destroy']:
@@ -73,12 +74,12 @@ class CategoryViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'destroy', 'partial_update']:
             return (AdminOnlyPermission(), )
         return (permissions.AllowAny(), )
-    
+
     def retrieve(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         raise MethodNotAllowed(request.method)
-    
+
     def partial_update(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -90,9 +91,15 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all().annotate(
         rating=Avg('reviews__score')
     )
-    permission_classes = (AuthorizedOrModeratorPermission,)
+    permission_classes = (AdminOnlyPermission, IsAuthenticatedOrReadOnly)
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('category__slug', 'genre__slug', 'year', 'name')
+
+    def get_permissions(self):
+        print(self.action)
+        if self.action in ['create', 'destroy', 'partial_update']:
+            return (AdminOnlyPermission(), )
+        return (permissions.AllowAny(), )
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
