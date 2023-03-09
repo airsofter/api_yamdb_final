@@ -47,20 +47,16 @@ class SelfUser(viewsets.ViewSet):
         return Response(serializer.data)
 
 
-class CreateListDestroyViewSet(mixins.CreateModelMixin,
-                               mixins.ListModelMixin,
-                               mixins.DestroyModelMixin,
-                               viewsets.GenericViewSet):
-    """Общий класс для CategoryViewSet и GenreViewSet."""
-    # permission_classes = [IsAdminOrReadOnlyPermission]
 
-    pass
-
-
-class GenreViewSet(viewsets.ReadOnlyModelViewSet):
+class GenreViewSet(viewsets.ModelViewSet):
     """Вьюсет жанров"""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    def get_permissions(self):
+        print(self.action)
+        if self.action in ['create', 'destroy']:
+            return (AdminOnlyPermission(), )
+        return (permissions.AllowAny(), )
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
