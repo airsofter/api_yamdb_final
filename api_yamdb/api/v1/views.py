@@ -119,7 +119,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели комментариев."""
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorModeratorAdminOrReadOnly,)
-    http_method_names = ("get", "post", "delete", "patch")
+    pagination_class = PageNumPagination
 
     def get_review(self):
         return get_object_or_404(Review, id=self.kwargs.get('review_id'))
