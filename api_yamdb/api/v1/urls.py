@@ -1,3 +1,4 @@
+"""URL приложения API."""
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
@@ -25,7 +26,21 @@ urlpatterns = [
     path('', include(router.urls)),
     path('auth/signup/', SignupView.as_view(), name='signup'),
     path('auth/token/', TokenObtainView.as_view(), name='token_obtain'),
-    path('users/', UsersViewSet.as_view({'get': 'list', 'post': 'create'}), name='users'),
-    path('users/me/', SelfUser.as_view({'get': 'retrieve', 'patch': 'partial_update'}), name='user_me'),
-    path('users/<str:username>/', UsersViewSet.as_view({'get': 'retrieve', 'patch': 'partial_update', 'delete': 'destroy'}), name='users'),
+    path(
+        'users/',
+        UsersViewSet.as_view({'get': 'list', 'post': 'create'}),
+        name='users'
+    ),
+    path(
+        'users/me/',
+        SelfUser.as_view({'get': 'retrieve', 'patch': 'partial_update'}),
+        name='user_me'
+    ),
+    path(
+        'users/<str:username>/',
+        UsersViewSet.as_view(
+            {'get': 'retrieve', 'patch': 'partial_update', 'delete': 'destroy'}
+        ),
+        name='users'
+    ),
 ]

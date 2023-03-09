@@ -1,27 +1,28 @@
 """Обработчики приложения API."""
-import random
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
-from rest_framework import generics, status, viewsets, mixins, permissions
+from rest_framework import generics, status, viewsets, permissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from core.pagination import PageNumPagination
 from rest_framework import filters
 from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.filters import SearchFilter
-from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from django_filters.rest_framework import DjangoFilterBackend, CharFilter, FilterSet
+from django_filters.rest_framework import (
+    DjangoFilterBackend,
+    CharFilter,
+    FilterSet,
+)
 
 
 from .serializers import (SignupSerializer, TokenObtainSerializer,
                           CategorySerializer, GenreSerializer,
                           TitleRetrieveSerializer, TitleWriteSerializer,
                           ReviewSerializer, UsersSerializer, CommentSerializer)
-from .permissions import AdminOnlyPermission, AuthorizedOrModeratorPermission, IsAuthorModeratorAdminOrReadOnly
+from .permissions import AdminOnlyPermission, IsAuthorModeratorAdminOrReadOnly
 from users.models import User
-from reviews.models import Genre, Category, Title, Review, Comment
-from core.data_hash import hash_sha256
+from reviews.models import Genre, Category, Title, Review
 
 
 class SelfUser(viewsets.ViewSet):
@@ -73,13 +74,12 @@ class GenreViewSet(viewsets.ModelViewSet):
     search_fields = ('name',)
     lookup_field = 'slug'
 
-
     def get_permissions(self):
         print(self.action)
         if self.action in ['create', 'destroy', 'partial_update']:
             return (AdminOnlyPermission(), )
         return (permissions.AllowAny(), )
-    
+
     def retrieve(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -181,8 +181,7 @@ class SignupView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(
-            serializer.data
-        ,
+            serializer.data,
             status=status.HTTP_200_OK,
         )
 
@@ -217,5 +216,3 @@ class UsersViewSet(viewsets.ModelViewSet):
     permission_classes = (AdminOnlyPermission, )
     search_fields = ('username', )
     lookup_field = 'username'
-
-

@@ -1,17 +1,19 @@
 """Сериализаторы приложения API."""
 import random
-import hashlib
 
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
-from django.core.validators import (RegexValidator, MaxValueValidator,
-                                    MinValueValidator)
+from django.core.validators import (
+    RegexValidator,
+    MaxValueValidator,
+    MinValueValidator,
+)
 from django.db.models import Q
 
 from core.send_mail import send_mail
 from core.data_hash import hash_sha256
-from users.models import User, ROLE_CHOICE
+from users.models import User
 from reviews.models import Category, Comment, Genre, Review, Title
 
 
@@ -29,7 +31,6 @@ class SignupSerializer(serializers.Serializer):
         ],
     )
     email = serializers.EmailField(max_length=254, required=True)
-    
 
     def validate(self, data):
         errors = {}
@@ -47,17 +48,25 @@ class SignupSerializer(serializers.Serializer):
             raise serializers.ValidationError(errors)
 
         return data
+
     def create(self, validated_data):
         username = validated_data.get('username')
         email = validated_data.get('email')
         confirmation_code = random.randint(1000000, 9999999)
 
-        user = User.objects.filter(Q(username=username) | Q(email=email)).first()
-        print(user)
+        user = User.objects.filter(
+            Q(username=username) | Q(email=email)
+        ).first()
 
         if user:
-            if user.email == email and user.username != username or (user.email != email and user.username == username):
-                raise serializers.ValidationError('Такой пользователь уже существует.')
+            if (
+                user.email == email
+                and user.username != username
+                or (user.email != email and user.username == username)
+            ):
+                raise serializers.ValidationError(
+                    {'error': 'Такой пользователь уже существует.'},
+                )
 
             user.confirmation_code = hash_sha256(confirmation_code)
             print(user.confirmation_code)
@@ -134,7 +143,9 @@ class UsersSerializer(serializers.ModelSerializer):
         errors = {}
         username = data.get('username')
         email = data.get('email')
-        user = User.objects.filter(Q(username=username) | Q(email=email)).first()
+        user = User.objects.filter(
+            Q(username=username) | Q(email=email)
+        ).first()
         if not self.partial:
             if not email:
                 errors['email'] = 'Введите правильный адрес электронной почты.'
@@ -143,11 +154,12 @@ class UsersSerializer(serializers.ModelSerializer):
         if username == 'me':
             errors['username'] = 'Никнейм "me" запрещен.'
         if user:
-            errors['user'] = 'Пользователь с таким username или email уже существует'
+            errors['user'] = (
+                'Пользователь с таким username или email уже существует'
+            )
         if errors:
             raise serializers.ValidationError(errors)
         return data
-
 
     def create(self, validated_data):
         """Метод для создания пользователя."""
