@@ -1,15 +1,13 @@
 """Обработчики приложения API."""
-import random
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
-from rest_framework import generics, status, viewsets, mixins, permissions
+from rest_framework import generics, status, viewsets, permissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from core.pagination import PageNumPagination
 from rest_framework import filters
 from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.filters import SearchFilter
-from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django_filters.rest_framework import (DjangoFilterBackend, CharFilter,
                                            FilterSet, NumberFilter)
