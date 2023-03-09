@@ -18,10 +18,9 @@ from .serializers import (SignupSerializer, TokenObtainSerializer,
                           CategorySerializer, GenreSerializer,
                           TitleRetrieveSerializer, TitleWriteSerializer,
                           ReviewSerializer, UsersSerializer, CommentSerializer)
-from .permissions import AdminOnlyPermission, AuthorizedOrModeratorPermission, IsAuthorModeratorAdminOrReadOnly
+from .permissions import AdminOnlyPermission, IsAuthorModeratorAdminOrReadOnly
 from users.models import User
-from reviews.models import Genre, Category, Title, Review, Comment
-from core.data_hash import hash_sha256
+from reviews.models import Genre, Category, Title, Review
 
 
 class SelfUser(viewsets.ViewSet):
@@ -61,7 +60,7 @@ class GenreViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'destroy', 'partial_update']:
             return (AdminOnlyPermission(), )
         return (permissions.AllowAny(), )
-    
+
     def retrieve(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -77,7 +76,6 @@ class CategoryViewSet(viewsets.ModelViewSet):
     """Вьюсет категорий"""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    pagination_class = PageNumPagination
     filter_backends = (SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
@@ -106,7 +104,6 @@ class TitleViewSet(viewsets.ModelViewSet):
     )
     permission_classes = (AdminOnlyPermission, IsAuthenticatedOrReadOnly)
     filter_backends = (DjangoFilterBackend,)
-    pagination_class = PageNumPagination
     filterset_fields = ('category__slug', 'genre__slug', 'year', 'name')
 
     def get_permissions(self):
@@ -141,7 +138,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели комментариев."""
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorModeratorAdminOrReadOnly,)
-    pagination_class = PageNumPagination
 
     def get_review(self):
         return get_object_or_404(Review, id=self.kwargs.get('review_id'))
@@ -163,8 +159,7 @@ class SignupView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(
-            serializer.data
-        ,
+            serializer.data,
             status=status.HTTP_200_OK,
         )
 
@@ -194,10 +189,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     """Обработчик для модели User."""
     queryset = User.objects.all()
     serializer_class = UsersSerializer
-    pagination_class = PageNumPagination
     filter_backends = (filters.SearchFilter, )
     permission_classes = (AdminOnlyPermission, )
     search_fields = ('username', )
     lookup_field = 'username'
-
-
