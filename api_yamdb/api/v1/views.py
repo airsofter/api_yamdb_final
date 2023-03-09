@@ -55,7 +55,7 @@ class GenreViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         print(self.action)
-        if self.action in ['create', 'destroy']:
+        if self.action in ['create', 'destroy', 'partial_update']:
             return (AdminOnlyPermission(), )
         return (permissions.AllowAny(), )
 
