@@ -5,7 +5,6 @@ from django.contrib.auth.models import (
 from django.db import models
 
 
-
 USER = 'user'
 MODERATOR = 'moderator'
 ADMIN = 'admin'
