@@ -52,12 +52,25 @@ class GenreViewSet(viewsets.ModelViewSet):
     """Вьюсет жанров"""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    filter_backends = (SearchFilter,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
 
     def get_permissions(self):
         print(self.action)
         if self.action in ['create', 'destroy', 'partial_update']:
             return (AdminOnlyPermission(), )
         return (permissions.AllowAny(), )
+    
+    def retrieve(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        raise MethodNotAllowed(request.method)
+
+    def partial_update(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        raise MethodNotAllowed(request.method)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):

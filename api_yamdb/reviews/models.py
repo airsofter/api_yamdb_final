@@ -19,6 +19,7 @@ class Category(models.Model):
         return f'{self.name}'
 
     class Meta:
+        ordering = ('id',)
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
@@ -38,6 +39,7 @@ class Genre(models.Model):
         return f'{self.name}'
 
     class Meta:
+        ordering = ('id',)
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
 
@@ -72,6 +74,7 @@ class Title(models.Model):
     )
 
     class Meta:
+        ordering = ('-year',)
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
 
@@ -130,7 +133,7 @@ class Review(models.Model):
     )
 
     class Meta:
-        # ordering = ('-pub_date',)
+        ordering = ('-pub_date',)
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         constraints = [
@@ -165,7 +168,7 @@ class Comment(models.Model):
     )
 
     class Meta:
-        # ordering = ('-pub_date',)
+        ordering = ('-pub_date',)
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
 
