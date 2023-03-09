@@ -57,8 +57,7 @@ class TitleFilter(FilterSet):
         field_name='genre__slug', lookup_expr='contains'
     )
     year = NumberFilter(
-        field_name='year',
-        lookup_expr='contains')
+        field_name='year', lookup_expr='contains')
 
     class Meta:
         model = Title
@@ -120,9 +119,8 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all().annotate(
         rating=Avg('reviews__score')
     )
-    permission_classes = (AdminOnlyPermission, IsAuthenticatedOrReadOnly)
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category__slug', 'genre__slug', 'year', 'name')
+    filterset_class = TitleFilter
 
     def get_permissions(self):
         print(self.action)
