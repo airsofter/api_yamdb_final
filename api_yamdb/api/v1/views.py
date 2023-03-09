@@ -18,24 +18,24 @@ from .serializers import (SignupSerializer, TokenObtainSerializer,
 from .permissions import AdminOnlyPermission, AuthorizedOrModeratorPermission
 from users.models import User
 from reviews.models import Genre, Category, Title, Review, Comment
-from core.data_hash import hash_sha254
+from core.data_hash import hash_sha256
 
 
 class SelfUser(viewsets.ViewSet):
     """Класс для операций по эндпоинту ('api/v1/users/me')."""
 
     permission_classes = [permissions.IsAuthenticated, ]
-    
+
     def retrieve(self, request, pk=None):
         """Возвращает пользователя сделавшего запрос."""
-        
+
         user = User.objects.get(username=request.user.username)
         serializer = UsersSerializer(user)
         return Response(serializer.data)
-    
+
     def partial_update(self, request):
         """Метод для PATCH запрсов на эндпоинт ('api/v1/users/me')."""
-        
+
         data = request.data.copy()
         data.pop('role', None)
         user = User.objects.get(username=request.user.username)
@@ -127,11 +127,6 @@ class SignupView(generics.CreateAPIView):
         ,
             status=status.HTTP_200_OK,
         )
-        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        # errors = {}
-        # for field, error_list in serializer.errors.items():
-        #     errors[field] = [str(e) for e in error_list]
-        # return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TokenObtainView(generics.GenericAPIView):
@@ -166,24 +161,3 @@ class UsersViewSet(viewsets.ModelViewSet):
     lookup_field = 'username'
 
 
-    def retrieve(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        user = get_object_or_404(queryset, username=kwargs['username'])
-        serializer = self.get_serializer(user)
-        return Response(serializer.data)
-
-    def update(self, request, *args, **kwargs):
-        if request.method == 'PUT':
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-        queryset = self.get_queryset()
-        user = get_object_or_404(queryset, username=kwargs['username'])
-        serializer = self.get_serializer(user, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
-
-    def delete(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        get_object_or_404(queryset, username=kwargs['username']).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)

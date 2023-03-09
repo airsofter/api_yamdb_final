@@ -10,7 +10,7 @@ from django.core.validators import (RegexValidator, MaxValueValidator,
 from django.db.models import Q
 
 from core.send_mail import send_mail
-from core.data_hash import hash_sha254
+from core.data_hash import hash_sha256
 from users.models import User, ROLE_CHOICE
 from reviews.models import Category, Comment, Genre, Review, Title
 
@@ -59,7 +59,7 @@ class SignupSerializer(serializers.Serializer):
             if user.email == email and user.username != username or (user.email != email and user.username == username):
                 raise serializers.ValidationError('Такой пользователь уже существует.')
 
-            user.confirmation_code = hash_sha254(confirmation_code)
+            user.confirmation_code = hash_sha256(confirmation_code)
             print(user.confirmation_code)
             send_mail(
                 from_email='yam.db.bot@support.com',
@@ -72,7 +72,7 @@ class SignupSerializer(serializers.Serializer):
         user = User.objects.create(
             username=username,
             email=email,
-            confirmation_code=confirmation_code,
+            confirmation_code=hash_sha256(confirmation_code),
         )
         send_mail(
             from_email='yam.db.bot@support.com',
@@ -99,7 +99,9 @@ class TokenObtainSerializer(serializers.Serializer):
         confirmation_code = data.get('confirmation_code')
 
         user = get_object_or_404(User, username=username)
-        if confirmation_code != user.confirmation_code:
+        print(confirmation_code)
+        print(user.confirmation_code)
+        if hash_sha256(confirmation_code) != user.confirmation_code:
             raise serializers.ValidationError('Неверный код подтверждения.')
         return data
 
