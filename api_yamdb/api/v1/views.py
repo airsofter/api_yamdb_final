@@ -11,7 +11,7 @@ from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.filters import SearchFilter
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from django_filters.rest_framework import DjangoFilterBackend
+from django_filters.rest_framework import DjangoFilterBackend, CharFilter, FilterSet
 
 
 from .serializers import (SignupSerializer, TokenObtainSerializer,
@@ -47,13 +47,31 @@ class SelfUser(viewsets.ViewSet):
         return Response(serializer.data)
 
 
+class TitleFilter(FilterSet):
+    name = CharFilter(
+        field_name='name', lookup_expr='contains'
+    )
+    category = CharFilter(
+        field_name='category__slug', lookup_expr='exact'
+    )
+    genre = CharFilter(
+        field_name='genre__slug', lookup_expr='exact'
+    )
+
+    class Meta:
+        model = Title
+        fields = ['name', 'category', 'genre', 'year']
+
+
 class GenreViewSet(viewsets.ModelViewSet):
     """Вьюсет жанров"""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    filter_backends = (SearchFilter,)
+    filter_backends = (DjangoFilterBackend, )
+    filterset_class = TitleFilter
     search_fields = ('name',)
     lookup_field = 'slug'
+
 
     def get_permissions(self):
         print(self.action)
