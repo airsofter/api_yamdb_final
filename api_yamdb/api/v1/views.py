@@ -106,6 +106,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     )
     permission_classes = (AdminOnlyPermission, IsAuthenticatedOrReadOnly)
     filter_backends = (DjangoFilterBackend,)
+    pagination_class = PageNumPagination
     filterset_fields = ('category__slug', 'genre__slug', 'year', 'name')
 
     def get_permissions(self):
