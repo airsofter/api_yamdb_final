@@ -124,6 +124,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели отзывов."""
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthorModeratorAdminOrReadOnly,)
+    pagination_class = PageNumPagination
 
     def get_title(self):
         return get_object_or_404(Title, pk=self.kwargs.get('title_id'))
