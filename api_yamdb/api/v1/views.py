@@ -5,11 +5,13 @@ from django.db.models import Avg
 from rest_framework import generics, status, viewsets, mixins, permissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from core.pagination import UsersPagination
+from core.pagination import PageNumPagination
 from rest_framework import filters
+from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.filters import SearchFilter
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
+
 
 from .serializers import (SignupSerializer, TokenObtainSerializer,
                           CategorySerializer, GenreSerializer,
@@ -51,9 +53,8 @@ class CreateListDestroyViewSet(mixins.CreateModelMixin,
                                viewsets.GenericViewSet):
     """Общий класс для CategoryViewSet и GenreViewSet."""
     # permission_classes = [IsAdminOrReadOnlyPermission]
-    filter_backends = (SearchFilter,)
-    search_fields = ('name',)
-    lookup_field = 'slug'
+
+    pass
 
 
 class GenreViewSet(viewsets.ReadOnlyModelViewSet):
@@ -66,6 +67,26 @@ class CategoryViewSet(viewsets.ModelViewSet):
     """Вьюсет категорий"""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    pagination_class = PageNumPagination
+    filter_backends = (SearchFilter,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+
+    def get_permissions(self):
+        print(self.action)
+        if self.action in ['create', 'destroy', 'partial_update']:
+            return (AdminOnlyPermission(), )
+        return (permissions.AllowAny(), )
+    
+    def retrieve(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        raise MethodNotAllowed(request.method)
+    
+    def partial_update(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        raise MethodNotAllowed(request.method)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -155,7 +176,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     """Обработчик для модели User."""
     queryset = User.objects.all()
     serializer_class = UsersSerializer
-    pagination_class = UsersPagination
+    pagination_class = PageNumPagination
     filter_backends = (filters.SearchFilter, )
     permission_classes = (AdminOnlyPermission, )
     search_fields = ('username', )

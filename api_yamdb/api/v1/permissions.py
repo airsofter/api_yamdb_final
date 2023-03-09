@@ -6,7 +6,7 @@ from rest_framework import status
 
 class AuthorizedOrModeratorPermission(permissions.BasePermission):
     """Класс для контроля доступа к данным."""
-
+        
     def has_object_permission(self, request, view, obj):
         return (
                     request.user.role == ('moderator' or 'admin')
@@ -18,7 +18,7 @@ class AdminOnlyPermission(permissions.BasePermission):
     """Класс для контроля доступа к административным данным."""
 
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role == 'admin' or request.user.is_staff
+        return (request.user.is_authenticated and request.user.role == 'admin') or request.user.is_staff
 
 
 class IsAuthorModeratorAdminOrReadOnly(permissions.BasePermission):
