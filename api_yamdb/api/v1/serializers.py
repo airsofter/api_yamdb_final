@@ -221,10 +221,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для модели ревью."""
-    title = serializers.SlugRelatedField(
-        slug_field='name',
-        read_only=True
-    )
+
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True
