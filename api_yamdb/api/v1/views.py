@@ -8,7 +8,6 @@ from core.pagination import PageNumPagination
 from rest_framework import filters
 from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django_filters.rest_framework import (DjangoFilterBackend, CharFilter,
                                            FilterSet, NumberFilter)
 
