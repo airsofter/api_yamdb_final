@@ -2,7 +2,6 @@
 import random
 
 from django.shortcuts import get_object_or_404
-from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.core.validators import (
     RegexValidator,
@@ -10,6 +9,7 @@ from django.core.validators import (
     MinValueValidator,
 )
 from django.db.models import Q
+from rest_framework import serializers
 
 from core.send_mail import send_mail
 from core.data_hash import hash_sha256
