@@ -1,17 +1,16 @@
 """Обработчики приложения API."""
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
+from django_filters.rest_framework import (DjangoFilterBackend, CharFilter,
+                                           FilterSet, NumberFilter)
 from rest_framework import generics, status, viewsets, permissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from core.pagination import PageNumPagination
 from rest_framework import filters
 from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.filters import SearchFilter
-from django_filters.rest_framework import (DjangoFilterBackend, CharFilter,
-                                           FilterSet, NumberFilter)
 
-
+from core.pagination import PageNumPagination
 from .serializers import (SignupSerializer, TokenObtainSerializer,
                           CategorySerializer, GenreSerializer,
                           TitleRetrieveSerializer, TitleWriteSerializer,
